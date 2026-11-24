@@ -1,0 +1,51 @@
+name: Deploy to Pagelive
+description: Publish a built folder as a new version of a Pagelive site. Your workflow builds it; this action zips the folder and uploads it.
+author: Pagelive
+branding:
+  icon: upload-cloud
+  color: gray-dark
+
+inputs:
+  site:
+    description: The site to update, its id or slug (shown on the site's page in Pagelive).
+    required: true
+  directory:
+    description: The folder to publish, the one with index.html at its top (dist for Vite, build, out, or . for a plain folder).
+    required: false
+    default: dist
+  api-key:
+    description: A Pagelive API key (pl_...) from a repository secret. Leave it out to sign in with GitHub OIDC instead, which needs `permissions: id-token: write` and this repository connected to the site in Pagelive.
+    required: false
+    default: ''
+  workspace:
+    description: With an API key, the team workspace (id or slug) that holds the site. Usually not needed, the site names its workspace.
+    required: false
+    default: ''
+  api-url:
+    description: The Pagelive API. Leave as is.
+    required: false
+    default: https://app.pagelive.io
+
+outputs:
+  url:
+    description: The site's address.
+    value: ${{ steps.deploy.outputs.url }}
+  slug:
+    description: The site's slug.
+    value: ${{ steps.deploy.outputs.slug }}
+  site-id:
+    description: The site's id.
+    value: ${{ steps.deploy.outputs.site-id }}
+
+runs:
+  using: composite
+  steps:
+    - id: deploy
+      shell: bash
+      env:
+        PAGELIVE_SITE: ${{ inputs.site }}
+        PAGELIVE_DIRECTORY: ${{ inputs.directory }}
+        PAGELIVE_API_KEY: ${{ inputs.api-key }}
+        PAGELIVE_WORKSPACE: ${{ inputs.workspace }}
+        PAGELIVE_API_URL: ${{ inputs.api-url }}
+      run: bash "$GITHUB_ACTION_PATH/deploy.sh"
